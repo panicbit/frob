@@ -4,6 +4,7 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 pub enum Opt {
     Monitor(midas_monitor::Opt),
+    Volume(midas_volume::Opt),
 }
 
 fn main() -> Result<()> {
@@ -11,5 +12,6 @@ fn main() -> Result<()> {
 
     match opt {
         Opt::Monitor(opt) => midas_monitor::run(&opt),
+        Opt::Volume(opt) => midas_volume::run(&opt),
     }
 }

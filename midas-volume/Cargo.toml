@@ -1,0 +1,9 @@
+[package]
+name = "midas-volume"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fauxpas = "1.0.51"
+libpulse-binding = "2.25.0"
+structopt = "0.3.25"
