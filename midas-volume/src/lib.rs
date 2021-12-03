@@ -16,39 +16,47 @@ use structopt::StructOpt;
 pub enum Opt {
     Get,
     #[structopt(visible_alias = "up")]
-    Increase,
+    Increase(VolumeChange),
     #[structopt(visible_alias = "down")]
-    Decrease,
+    Decrease(VolumeChange),
+}
+
+#[derive(StructOpt)]
+pub struct VolumeChange {
+    #[structopt(default_value = "1")]
+    /// the amount to change the volume by
+    amount: u16,
 }
 
 pub fn run(opt: &Opt) -> Result<()> {
     match opt {
         Opt::Get => cmd_get(),
-        Opt::Increase=> cmd_increase(),
-        Opt::Decrease => cmd_decrease(),
+        Opt::Increase(opt) => cmd_increase(opt),
+        Opt::Decrease(opt) => cmd_decrease(opt),
     }
 }
 
 fn cmd_get() -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    
+
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
-    
+
     let volume = sink_info.volume.max();
     let volume = VolumeLinear::from(volume);
-    
+
     println!("{:.0}", volume.0 * 100.);
 
     Ok(())
 }
 
-fn cmd_increase() -> Result<()> {
+fn cmd_increase(opt: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    
+    let amount = (opt.amount as f64).clamp(0., 100.);
+
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
-    
+
     let mut volume = sink_info.volume;
 
     for volume in volume.get_mut() {
@@ -57,7 +65,7 @@ fn cmd_increase() -> Result<()> {
 
         *value *= 100.;
         // println!("Old volume: {:.2}", value);
-        *value += 1.; // increase by 5%
+        *value += amount;
         *value = value.round().clamp(0., 100.);
         // println!("New volume: {:.2}", value);
         *value /= 100.;
@@ -71,12 +79,13 @@ fn cmd_increase() -> Result<()> {
     Ok(())
 }
 
-fn cmd_decrease() -> Result<()> {
+fn cmd_decrease(opt: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    
+    let amount = (opt.amount as f64).clamp(0., 100.);
+
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
-    
+
     let mut volume = sink_info.volume;
 
     for volume in volume.get_mut() {
@@ -85,7 +94,7 @@ fn cmd_decrease() -> Result<()> {
 
         *value *= 100.;
         // println!("Old volume: {:.2}", value);
-        *value -= 1.; // increase by 5%
+        *value -= amount;
         *value = value.round().clamp(0., 100.);
         // println!("New volume: {:.2}", value);
         *value /= 100.;
