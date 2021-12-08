@@ -1,0 +1,8 @@
+[package]
+name = "midas-brightness"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fauxpas = "1.0.51"
+structopt = "0.3.25"

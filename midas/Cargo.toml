@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+midas-brightness = { version = "0.1.0", path = "../midas-brightness" }
 midas-monitor = { version = "0.1.0", path = "../midas-monitor" }
 midas-volume = { version = "0.1.0", path = "../midas-volume" }
 
