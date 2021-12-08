@@ -13,6 +13,12 @@ pub struct Opt {
     )]
     /// reverse cycle direction
     reverse: bool,
+    #[structopt(
+        long = "attempts",
+        default_value = "1",
+    )]
+    /// number of cycle attempts (workaround for an i3 bug)
+    attempts: usize,
 }
 
 pub fn run(opt: &Opt) -> Result<()> {
@@ -30,8 +36,10 @@ pub fn run(opt: &Opt) -> Result<()> {
         None => return Ok(()),
     };
 
-    switch_to_workspace(next_workspace)
-        .context("Failed to switch workspace")?;
+    for _ in 0..opt.attempts {
+        switch_to_workspace(next_workspace)
+            .context("Failed to switch workspace")?;
+    }
 
     Ok(())
 }
