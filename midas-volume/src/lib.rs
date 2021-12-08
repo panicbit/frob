@@ -9,7 +9,7 @@ use libpulse_binding::mainloop::standard::{Mainloop, IterateResult};
 use libpulse_binding::operation;
 use libpulse_binding::proplist::Proplist;
 use libpulse_binding::proplist::properties::APPLICATION_NAME;
-use libpulse_binding::volume::{ChannelVolumes, VolumeLinear, Volume};
+use libpulse_binding::volume::{ChannelVolumes, Volume};
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -43,16 +43,15 @@ fn cmd_get() -> Result<()> {
         .context("Failed to get sink info")?;
 
     let volume = sink_info.volume.max();
-    let volume = VolumeLinear::from(volume);
 
-    println!("{:.0}", volume.0 * 100.);
+    println!("{:.0}", volume.percent());
 
     Ok(())
 }
 
 fn cmd_increase(opt: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    let amount = (opt.amount as f64).clamp(0., 100.);
+    let amount = (opt.amount as f32).clamp(0., 100.);
 
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
@@ -60,17 +59,11 @@ fn cmd_increase(opt: &VolumeChange) -> Result<()> {
     let mut volume = sink_info.volume;
 
     for volume in volume.get_mut() {
-        let mut new_volume = VolumeLinear::from(*volume);
-        let value = &mut new_volume.0;
+        let new_percent = (volume.percent() + amount)
+            .round()
+            .clamp(0., 100.);
 
-        *value *= 100.;
-        // println!("Old volume: {:.2}", value);
-        *value += amount;
-        *value = value.round().clamp(0., 100.);
-        // println!("New volume: {:.2}", value);
-        *value /= 100.;
-
-        *volume = Volume::from(new_volume);
+        volume.set_percent(new_percent);
     }
 
     set_sink_volume_by_name(&mut mainloop, &context, "@DEFAULT_SINK@", &volume)
@@ -81,7 +74,7 @@ fn cmd_increase(opt: &VolumeChange) -> Result<()> {
 
 fn cmd_decrease(opt: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    let amount = (opt.amount as f64).clamp(0., 100.);
+    let amount = (opt.amount as f32).clamp(0., 100.);
 
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
@@ -89,17 +82,11 @@ fn cmd_decrease(opt: &VolumeChange) -> Result<()> {
     let mut volume = sink_info.volume;
 
     for volume in volume.get_mut() {
-        let mut new_volume = VolumeLinear::from(*volume);
-        let value = &mut new_volume.0;
+        let new_percent = (volume.percent() - amount)
+            .round()
+            .clamp(0., 100.);
 
-        *value *= 100.;
-        // println!("Old volume: {:.2}", value);
-        *value -= amount;
-        *value = value.round().clamp(0., 100.);
-        // println!("New volume: {:.2}", value);
-        *value /= 100.;
-
-        *volume = Volume::from(new_volume);
+        volume.set_percent(new_percent);
     }
 
     set_sink_volume_by_name(&mut mainloop, &context, "@DEFAULT_SINK@", &volume)
@@ -211,6 +198,21 @@ fn set_sink_volume_by_name(mainloop: &mut Mainloop, context: &Context, name: &st
     }
 
     Ok(())
+}
+
+trait VolumeExt {
+    fn percent(&self) -> f32;
+    fn set_percent(&mut self, percent: f32);
+}
+
+impl VolumeExt for Volume {
+    fn percent(&self) -> f32 {
+        self.0 as f32 / Volume::NORMAL.0 as f32 * 100.
+    }
+
+    fn set_percent(&mut self, percent: f32) {
+        self.0 = (percent / 100. * Volume::NORMAL.0 as f32) as u32;
+    }
 }
 
 #[derive(Debug)]
