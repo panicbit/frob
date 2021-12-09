@@ -21,12 +21,18 @@ See below for an overview of possible subcommands.
 
 ```
 midas
+    brightness
+        up
+        down
+        get
+        list
     monitor
         cycle
     volume
+        up
+        down
         get
-        increase
-        decrease
+    
 ```
 
 The first level of `midas` subcommands can also be installed as individual tools e.g. `midas-volume`.

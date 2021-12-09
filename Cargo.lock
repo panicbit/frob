@@ -56,6 +56,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dbus"
+version = "0.9.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de0a745c25b32caa56b82a3950f5fec7893a960f4c10ca3b02060b0c38d8c2ce"
+dependencies = [
+ "libc",
+ "libdbus-sys",
+ "winapi",
+]
+
+[[package]]
 name = "fauxpas"
 version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -101,6 +112,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
 
 [[package]]
+name = "libdbus-sys"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c185b5b7ad900923ef3a8ff594083d4d9b5aea80bb4f32b8342363138c0d456b"
+dependencies = [
+ "pkg-config",
+]
+
+[[package]]
 name = "libpulse-binding"
 version = "2.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -132,8 +152,18 @@ name = "midas"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "midas-brightness",
  "midas-monitor",
  "midas-volume",
+ "structopt",
+]
+
+[[package]]
+name = "midas-brightness"
+version = "0.1.0"
+dependencies = [
+ "dbus",
+ "fauxpas",
  "structopt",
 ]
 
