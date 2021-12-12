@@ -15,6 +15,7 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 pub enum Opt {
     Get,
+    Set { percent: u8 },
     #[structopt(visible_alias = "up")]
     Increase(VolumeChange),
     #[structopt(visible_alias = "down")]
@@ -25,12 +26,13 @@ pub enum Opt {
 pub struct VolumeChange {
     #[structopt(default_value = "1")]
     /// the amount to change the volume by
-    amount: u16,
+    amount: u8,
 }
 
 pub fn run(opt: &Opt) -> Result<()> {
     match opt {
         Opt::Get => cmd_get(),
+        Opt::Set { percent } => cmd_set(*percent),
         Opt::Increase(opt) => cmd_increase(opt),
         Opt::Decrease(opt) => cmd_decrease(opt),
     }
@@ -45,6 +47,25 @@ fn cmd_get() -> Result<()> {
     let volume = sink_info.volume.max();
 
     println!("{:.0}", volume.percent());
+
+    Ok(())
+}
+
+fn cmd_set(percent: u8) -> Result<()> {
+    let (mut mainloop, context) = connect_to_pulseaudio()?;
+    let percent = (percent as f32).clamp(0., 100.);
+
+    let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
+        .context("Failed to get sink info")?;
+
+    let mut volume = sink_info.volume;
+
+    for volume in volume.get_mut() {
+        volume.set_percent(percent);
+    }
+
+    set_sink_volume_by_name(&mut mainloop, &context, "@DEFAULT_SINK@", &volume)
+        .context("Failed to set sink volume")?;
 
     Ok(())
 }
