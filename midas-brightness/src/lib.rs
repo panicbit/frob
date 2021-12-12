@@ -7,6 +7,10 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 pub enum Opt {
     Get,
+    Set {
+        #[structopt(default_value = "1")]
+        percent: u8,
+    },
     #[structopt(visible_alias = "up")]
     Increase {
         #[structopt(default_value = "1")]
@@ -23,6 +27,7 @@ pub enum Opt {
 pub fn run(opt: &Opt) -> Result<()> {
     match opt {
         Opt::Get => cmd_get(),
+        Opt::Set { percent } => cmd_set(*percent),
         Opt::Increase { amount } => cmd_increase(*amount),
         Opt::Decrease { amount } => cmd_decrease(*amount),
         Opt::List => cmd_list(),
@@ -33,6 +38,16 @@ fn cmd_get() -> Result<()> {
     let info = guess_best_backlight()?;
 
     println!("{:.0}", info.brightness_percent());
+
+    Ok(())
+}
+
+fn cmd_set(percent: u8) -> Result<()> {
+    let percent = percent.clamp(0, 100) as f32;
+    let mut info = guess_best_backlight()?;
+
+    info.set_brightness_percent(percent);
+    info.save_brightness()?;
 
     Ok(())
 }
@@ -54,14 +69,6 @@ fn cmd_decrease(amount: u8) -> Result<()> {
     let new_percent = info.brightness_percent() - amount;
 
     info.set_brightness_percent(new_percent);
-
-    // Brightness value 0 turns the screen completely black.
-    // This is usually not desired by the user.
-    // TODO: make configurable
-    if info.brightness == 0 {
-        info.brightness = 1;
-    }
-
     info.save_brightness()?;
 
     Ok(())
@@ -170,6 +177,13 @@ impl BacklightInfo {
         let new_brightness = percent / 100. * self.max_brightness as f32;
 
         self.brightness = new_brightness as u32;
+
+        // Brightness value 0 turns the screen completely black.
+        // This is usually not desired by the user.
+        // TODO: make configurable
+        if self.brightness == 0 {
+            self.brightness = 1;
+        }
     }
 
     fn save_brightness(&self) -> Result<()> {

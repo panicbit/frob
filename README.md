@@ -25,6 +25,7 @@ midas
         up
         down
         get
+        set
         list
     monitor
         cycle
