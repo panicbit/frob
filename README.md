@@ -34,6 +34,7 @@ midas
         down
         get
         set
+        toggle-mute
 ```
 
 The first level of `midas` subcommands can also be installed as individual tools e.g. `midas-volume`.

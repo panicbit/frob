@@ -20,6 +20,7 @@ pub enum Opt {
     Increase(VolumeChange),
     #[structopt(visible_alias = "down")]
     Decrease(VolumeChange),
+    ToggleMute,
 }
 
 #[derive(StructOpt)]
@@ -35,6 +36,7 @@ pub fn run(opt: &Opt) -> Result<()> {
         Opt::Set { percent } => cmd_set(*percent),
         Opt::Increase(opt) => cmd_increase(opt),
         Opt::Decrease(opt) => cmd_decrease(opt),
+        Opt::ToggleMute => cmd_toggle_mute(),
     }
 }
 
@@ -116,6 +118,21 @@ fn cmd_decrease(opt: &VolumeChange) -> Result<()> {
     Ok(())
 }
 
+fn cmd_toggle_mute() -> Result<()> {
+    let (mut mainloop, context) = connect_to_pulseaudio()?;
+    let sink_name = "@DEFAULT_SINK@";
+
+    let sink_info = get_sink_info_by_name(&mut mainloop, &context, sink_name)
+        .context("Failed to get sink info")?;
+
+    let mute = !sink_info.mute;
+
+    set_sink_mute_by_name(&mut mainloop, &context, sink_name, mute)
+        .context("Failed to set sink mute flag")?;
+
+    Ok(())
+}
+
 fn connect_to_pulseaudio() -> Result<(Mainloop, Context)> {
         let mut mainloop = Mainloop::new()
         .context("Failed to create main loop")?;
@@ -166,6 +183,7 @@ fn get_sink_info_by_name(mainloop: &mut Mainloop, context: &Context, name: &str)
             match list {
                 ListResult::Item(sink_info) => *sink_info_result = Some(Result::Ok(SinkInfo {
                     volume: sink_info.volume,
+                    mute: sink_info.mute,
                 })),
                 ListResult::End => {},
                 ListResult::Error => *sink_info_result = Some(Err(())),
@@ -198,9 +216,42 @@ fn get_sink_info_by_name(mainloop: &mut Mainloop, context: &Context, name: &str)
     Ok(sink_info)
 }
 
-fn set_sink_volume_by_name(mainloop: &mut Mainloop, context: &Context, name: &str, volume: &ChannelVolumes) -> Result<()> {
+fn set_sink_volume_by_name(
+    mainloop: &mut Mainloop,
+    context: &Context,
+    name: &str,
+    volume: &ChannelVolumes,
+) -> Result<()> {
     let mut introspector = context.introspect();
     let operation = introspector.set_sink_volume_by_name(name, volume, None);
+
+    loop {
+        match mainloop.iterate(true) {
+            IterateResult::Quit(_) |
+            IterateResult::Err(_) => {
+                bail!("Iterate state was not success, quitting...");
+            },
+            IterateResult::Success(_) => {},
+        }
+
+        match operation.get_state() {
+            operation::State::Running => {},
+            operation::State::Done => break,
+            operation::State::Cancelled => break,
+        }
+    }
+
+    Ok(())
+}
+
+fn set_sink_mute_by_name(
+    mainloop: &mut Mainloop,
+    context: &Context,
+    name: &str,
+    mute: bool,
+) -> Result<()> {
+    let mut introspector = context.introspect();
+    let operation = introspector.set_sink_mute_by_name(name, mute, None);
 
     loop {
         match mainloop.iterate(true) {
@@ -239,4 +290,5 @@ impl VolumeExt for Volume {
 #[derive(Debug)]
 struct SinkInfo {
     volume: ChannelVolumes,
+    mute: bool,
 }
