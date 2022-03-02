@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 midas-brightness = { version = "0.1.0", path = "../midas-brightness" }
+midas-clipboard-server = { version = "0.1.0", path = "../midas-clipboard-server" }
 midas-monitor = { version = "0.1.0", path = "../midas-monitor" }
 midas-volume = { version = "0.1.0", path = "../midas-volume" }
 

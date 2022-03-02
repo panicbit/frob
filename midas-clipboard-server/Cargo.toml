@@ -1,0 +1,9 @@
+[package]
+name = "midas-clipboard-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fauxpas = "1.0.51"
+structopt = "0.3.25"
+x11rb = "0.9.0"
