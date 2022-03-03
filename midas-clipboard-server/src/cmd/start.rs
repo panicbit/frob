@@ -1,0 +1,100 @@
+use std::sync::Arc;
+
+use fauxpas::*;
+use x11rb::connection::Connection;
+use x11rb::protocol::xproto::{
+    ConnectionExt as _, EventMask, SelectionNotifyEvent, SelectionRequestEvent,
+    SELECTION_NOTIFY_EVENT,
+};
+use x11rb::protocol::Event;
+use x11rb::rust_connection::RustConnection;
+
+use crate::wrapper::Window;
+
+const WINDOW_TITLE: &str = "midas-clipboard-server";
+const WINDOW_CLASS: &str = WINDOW_TITLE;
+
+pub fn start() -> Result<()> {
+    let (conn, _screen_num) = x11rb::connect(None).context("Failed to connect to X server")?;
+    let conn = Arc::new(conn);
+    let window = Window::new_dummy(&conn).context("Failed to create window")?;
+
+    window
+        .set_title(WINDOW_TITLE)
+        .context("Failed to set window title")?;
+
+    window
+        .set_class(WINDOW_CLASS)
+        .context("Failed to set window class")?;
+
+    window
+        .acquire_clipboard_now()
+        .context("Failed to acquire clipboard")?;
+
+    println!("Window id: 0x{:08x}", window.id());
+
+    while let Ok(event) = conn.wait_for_event() {
+        match event {
+            Event::SelectionRequest(event) => {
+                println!("We got asked to send the selection! {event:#?}");
+                handle_selection_request(&conn, &event)?;
+            }
+            Event::SelectionClear(event) => {
+                println!("We lost ownership of the selection! {event:#?}");
+            }
+            _ => println!("{event:?}"),
+        }
+    }
+
+    Ok(())
+}
+
+fn handle_selection_request(
+    conn: &Arc<RustConnection>,
+    event: &SelectionRequestEvent,
+) -> Result<()> {
+    let response = SelectionNotifyEvent {
+        response_type: SELECTION_NOTIFY_EVENT,
+        sequence: 0,
+        time: event.time,
+        requestor: event.requestor,
+        selection: event.selection,
+        target: event.target,
+        property: event.property,
+    };
+
+    let requestor = Window::from_id(conn, event.requestor.into());
+
+    let target_name = conn.get_atom_name(event.target)?.reply()?.name;
+    let target_name = String::from_utf8_lossy(&target_name);
+
+    let property_name = conn.get_atom_name(event.property)?.reply()?.name;
+    let property_name = String::from_utf8_lossy(&property_name);
+
+    println!(
+        "Sending data to window 0x{:08x}, property {}, target {}",
+        event.requestor, property_name, target_name
+    );
+
+    match &*target_name {
+        "TARGETS" => {
+            let targets = &[conn
+                .intern_atom(false, "UTF8_STRING".as_bytes())?
+                .reply()?
+                .atom];
+
+            requestor.set_property_atoms(&*property_name, targets)?;
+        }
+        "UTF8_STRING" | "text/plain;charset=utf-8" => {
+            let payload = "Hello from Rust! 🦀";
+
+            requestor.set_property_str(&*property_name, payload)?;
+        }
+        _ => todo!("unsupported target: {}", target_name),
+    };
+
+    conn.send_event(true, event.requestor, EventMask::NO_EVENT, response)?
+        .check()?;
+
+    Ok(())
+}

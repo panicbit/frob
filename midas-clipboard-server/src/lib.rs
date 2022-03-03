@@ -1,18 +1,16 @@
 use fauxpas::*;
 use structopt::StructOpt;
 
+mod cmd;
+mod wrapper;
+
 #[derive(StructOpt)]
 pub enum Opt {
-    Start
+    Start,
 }
 
 pub fn run(opt: &Opt) -> Result<()> {
     match opt {
-        Opt::Start => cmd_start()
+        Opt::Start => cmd::start(),
     }
-}
-
-fn cmd_start() -> Result<()> {
-
-    Ok(())
 }
