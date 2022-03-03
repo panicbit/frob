@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use fauxpas::*;
+use x11rb::NONE;
 use x11rb::connection::Connection;
 use x11rb::protocol::xproto::{
     ConnectionExt as _, EventMask, SelectionNotifyEvent, SelectionRequestEvent,
@@ -57,7 +58,7 @@ fn handle_selection_request(
     atoms: &Atoms,
     event: &SelectionRequestEvent,
 ) -> Result<()> {
-    let response = SelectionNotifyEvent {
+    let mut response = SelectionNotifyEvent {
         response_type: SELECTION_NOTIFY_EVENT,
         sequence: 0,
         time: event.time,
@@ -84,16 +85,21 @@ fn handle_selection_request(
         "TARGETS" => {
             let targets = &[
                 atoms.UTF8_STRING,
+                atoms.text_plain_utf8,
+                atoms.text_plain,
             ];
 
             requestor.set_property_atoms(event.property, targets)?;
         }
-        "UTF8_STRING" | "text/plain;charset=utf-8" => {
+        "UTF8_STRING" | "text/plain;charset=utf-8" | "text/plain" => {
             let payload = "Hello from Rust! 🦀";
 
             requestor.set_property_str(event.property, payload)?;
         }
-        _ => todo!("unsupported target: {}", target_name),
+        _ => {
+            response.property = NONE;
+            println!("unsupported target: {}", target_name)
+        },
     };
 
     conn.send_event(true, event.requestor, EventMask::NO_EVENT, response)?

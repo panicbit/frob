@@ -7,5 +7,7 @@ x11rb::atom_manager! {
         WM_CLASS,
         _NET_WM_NAME,
         CLIPBOARD,
+        text_plain_utf8: b"text/plain;charset=utf-8",
+        text_plain: b"text/plain",
     }
 }
