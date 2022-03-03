@@ -9,7 +9,7 @@ use x11rb::protocol::xproto::{
 use x11rb::protocol::Event;
 use x11rb::rust_connection::RustConnection;
 
-use crate::wrapper::Window;
+use crate::wrapper::{Atoms, Window};
 
 const WINDOW_TITLE: &str = "midas-clipboard-server";
 const WINDOW_CLASS: &str = WINDOW_TITLE;
@@ -17,7 +17,10 @@ const WINDOW_CLASS: &str = WINDOW_TITLE;
 pub fn start() -> Result<()> {
     let (conn, _screen_num) = x11rb::connect(None).context("Failed to connect to X server")?;
     let conn = Arc::new(conn);
-    let window = Window::new_dummy(&conn).context("Failed to create window")?;
+    let atoms = Atoms::new(&*conn)?
+        .reply()
+        .context("Failed to create atoms")?;
+    let window = Window::new_dummy(&conn, &atoms).context("Failed to create window")?;
 
     window
         .set_title(WINDOW_TITLE)
@@ -37,7 +40,7 @@ pub fn start() -> Result<()> {
         match event {
             Event::SelectionRequest(event) => {
                 println!("We got asked to send the selection! {event:#?}");
-                handle_selection_request(&conn, &event)?;
+                handle_selection_request(&conn, &atoms, &event)?;
             }
             Event::SelectionClear(event) => {
                 println!("We lost ownership of the selection! {event:#?}");
@@ -51,6 +54,7 @@ pub fn start() -> Result<()> {
 
 fn handle_selection_request(
     conn: &Arc<RustConnection>,
+    atoms: &Atoms,
     event: &SelectionRequestEvent,
 ) -> Result<()> {
     let response = SelectionNotifyEvent {
@@ -63,7 +67,7 @@ fn handle_selection_request(
         property: event.property,
     };
 
-    let requestor = Window::from_id(conn, event.requestor.into());
+    let requestor = Window::from_id(conn, atoms, event.requestor.into());
 
     let target_name = conn.get_atom_name(event.target)?.reply()?.name;
     let target_name = String::from_utf8_lossy(&target_name);
@@ -78,17 +82,16 @@ fn handle_selection_request(
 
     match &*target_name {
         "TARGETS" => {
-            let targets = &[conn
-                .intern_atom(false, "UTF8_STRING".as_bytes())?
-                .reply()?
-                .atom];
+            let targets = &[
+                atoms.UTF8_STRING,
+            ];
 
-            requestor.set_property_atoms(&*property_name, targets)?;
+            requestor.set_property_atoms(event.property, targets)?;
         }
         "UTF8_STRING" | "text/plain;charset=utf-8" => {
             let payload = "Hello from Rust! 🦀";
 
-            requestor.set_property_str(&*property_name, payload)?;
+            requestor.set_property_str(event.property, payload)?;
         }
         _ => todo!("unsupported target: {}", target_name),
     };

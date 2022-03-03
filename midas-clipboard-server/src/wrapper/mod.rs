@@ -6,3 +6,6 @@ pub use window::Window;
 
 mod property_value_ref;
 pub use property_value_ref::PropertyValueRef;
+
+mod atoms;
+pub use atoms::Atoms;

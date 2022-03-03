@@ -9,15 +9,16 @@ use x11rb::rust_connection::RustConnection;
 use x11rb::wrapper::ConnectionExt as _;
 use x11rb::{COPY_DEPTH_FROM_PARENT, CURRENT_TIME};
 
-use crate::wrapper::{PropertyValueRef, WindowId};
+use crate::wrapper::{PropertyValueRef, WindowId, Atoms};
 
 pub struct Window {
     id: WindowId,
     conn: Arc<RustConnection>,
+    atoms: Atoms,
 }
 
 impl Window {
-    pub fn new_dummy(conn: &Arc<RustConnection>) -> Result<Self> {
+    pub fn new_dummy(conn: &Arc<RustConnection>, atoms: &Atoms) -> Result<Self> {
         let screen = conn.setup().roots.first().context("No roots available")?;
         let id = conn.generate_id().context("Failed to generate window id")?;
         let id = WindowId::from(id);
@@ -38,13 +39,14 @@ impl Window {
         .check()
         .context("Failed to create window")?;
 
-        Ok(Self::from_id(conn, id))
+        Ok(Self::from_id(conn, atoms, id))
     }
 
-    pub fn from_id(conn: &Arc<RustConnection>, id: WindowId) -> Self {
+    pub fn from_id(conn: &Arc<RustConnection>, atoms: &Atoms, id: WindowId) -> Self {
         Self {
             id,
             conn: conn.clone(),
+            atoms: *atoms,
         }
     }
 
@@ -53,62 +55,55 @@ impl Window {
     }
 
     pub fn set_title(&self, title: &str) -> Result<()> {
-        self.set_property_str("_NET_WM_NAME", title)
+        self.set_property_str(self.atoms._NET_WM_NAME, title)
     }
 
     pub fn set_class(&self, class: &str) -> Result<()> {
-        self.set_property_bytes("WM_CLASS", class)
+        self.set_property_bytes(self.atoms.WM_CLASS, class)
     }
 
-    pub fn set_property_str(&self, property: impl AsRef<[u8]>, data: &str) -> Result<()> {
-        self.set_property(property, "UTF8_STRING", PropertyValueRef::U8(data.as_ref()))
+    pub fn set_property_str(&self, property: Atom, data: &str) -> Result<()> {
+        self.set_property(property, self.atoms.UTF8_STRING, PropertyValueRef::U8(data.as_ref()))
     }
 
     pub fn set_property_bytes(
         &self,
-        property: impl AsRef<[u8]>,
+        property: Atom,
         bytes: impl AsRef<[u8]>,
     ) -> Result<()> {
-        self.set_property(property, "STRING", PropertyValueRef::U8(bytes.as_ref()))
+        self.set_property(property, self.atoms.STRING, PropertyValueRef::U8(bytes.as_ref()))
     }
 
-    pub fn set_property_atoms(&self, property: impl AsRef<[u8]>, atoms: &[Atom]) -> Result<()> {
-        self.set_property(property, "ATOM", PropertyValueRef::U32(atoms.as_ref()))
+    pub fn set_property_atoms(&self, property: Atom, atoms: &[Atom]) -> Result<()> {
+        self.set_property(property, self.atoms.ATOM, PropertyValueRef::U32(atoms))
     }
 
     fn set_property(
         &self,
-        property: impl AsRef<[u8]>,
-        type_: impl AsRef<[u8]>,
+        property: Atom,
+        type_: Atom,
         value: PropertyValueRef,
     ) -> Result<()> {
-        let atom_property = self
-            .conn
-            .intern_atom(false, property.as_ref())?
-            .reply()?
-            .atom;
-        let atom_type = self.conn.intern_atom(false, type_.as_ref())?.reply()?.atom;
-
         let result = match value {
             PropertyValueRef::U8(value) => self.conn.change_property8(
                 PropMode::REPLACE,
                 *self.id(),
-                atom_property,
-                atom_type,
+                property,
+                type_,
                 value,
             ),
             PropertyValueRef::U16(value) => self.conn.change_property16(
                 PropMode::REPLACE,
                 *self.id(),
-                atom_property,
-                atom_type,
+                property,
+                type_,
                 value,
             ),
             PropertyValueRef::U32(value) => self.conn.change_property32(
                 PropMode::REPLACE,
                 *self.id(),
-                atom_property,
-                atom_type,
+                property,
+                type_,
                 value,
             ),
         };
@@ -123,10 +118,8 @@ impl Window {
     }
 
     pub fn acquire_clipboard_at(&self, time: impl Into<Timestamp>) -> Result<()> {
-        let selection = self.conn.intern_atom(false, b"CLIPBOARD")?.reply()?.atom;
-
         self.conn
-            .set_selection_owner(self.id(), selection, time)?
+            .set_selection_owner(self.id(), self.atoms.CLIPBOARD, time)?
             .check()?;
 
         Ok(())
