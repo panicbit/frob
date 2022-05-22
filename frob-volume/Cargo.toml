@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Tool to control system volume"
 repository = "https://github.com/panicbit/frob"
+readme = "../README.md"
 
 [dependencies]
 fauxpas = "1.0.51"
