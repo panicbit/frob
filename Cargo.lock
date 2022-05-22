@@ -76,6 +76,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "frob"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "frob-brightness",
+ "frob-monitor",
+ "frob-volume",
+ "structopt",
+]
+
+[[package]]
+name = "frob-brightness"
+version = "0.1.0"
+dependencies = [
+ "dbus",
+ "fauxpas",
+ "structopt",
+]
+
+[[package]]
+name = "frob-monitor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "structopt",
+]
+
+[[package]]
+name = "frob-volume"
+version = "0.1.0"
+dependencies = [
+ "fauxpas",
+ "libpulse-binding",
+ "structopt",
+]
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -145,45 +184,6 @@ dependencies = [
  "num-traits",
  "pkg-config",
  "winapi",
-]
-
-[[package]]
-name = "midas"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "midas-brightness",
- "midas-monitor",
- "midas-volume",
- "structopt",
-]
-
-[[package]]
-name = "midas-brightness"
-version = "0.1.0"
-dependencies = [
- "dbus",
- "fauxpas",
- "structopt",
-]
-
-[[package]]
-name = "midas-monitor"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "structopt",
-]
-
-[[package]]
-name = "midas-volume"
-version = "0.1.0"
-dependencies = [
- "fauxpas",
- "libpulse-binding",
- "structopt",
 ]
 
 [[package]]

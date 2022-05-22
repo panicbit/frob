@@ -1,5 +1,5 @@
 [package]
-name = "midas-brightness"
+name = "frob-brightness"
 version = "0.1.0"
 edition = "2021"
 

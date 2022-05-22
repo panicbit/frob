@@ -1,0 +1,12 @@
+[package]
+name = "frob"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+frob-brightness = { version = "0.1.0", path = "../frob-brightness" }
+frob-monitor = { version = "0.1.0", path = "../frob-monitor" }
+frob-volume = { version = "0.1.0", path = "../frob-volume" }
+
+anyhow = "1.0.51"
+structopt = "0.3.25"

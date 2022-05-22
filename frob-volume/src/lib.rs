@@ -139,10 +139,10 @@ fn connect_to_pulseaudio() -> Result<(Mainloop, Context)> {
 
     let mut proplist = Proplist::new()
         .context("Failed to create proplist")?;
-    proplist.set_str(APPLICATION_NAME, "midas")
+    proplist.set_str(APPLICATION_NAME, "frob")
         .map_err(|()| anyhow!("Failed to set application name"))?;
 
-    let mut context = Context::new_with_proplist(&*mainloop.borrow(), "MidasContext", &proplist)
+    let mut context = Context::new_with_proplist(&*mainloop.borrow(), "FrobContext", &proplist)
         .context("Failed to create context")?;
 
     context.connect(None, context::FlagSet::NOFLAGS, None)

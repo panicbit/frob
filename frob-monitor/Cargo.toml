@@ -1,5 +1,5 @@
 [package]
-name = "midas-monitor"
+name = "frob-monitor"
 version = "0.1.0"
 edition = "2021"
 

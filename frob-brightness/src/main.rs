@@ -1,7 +1,7 @@
 use fauxpas::*;
 use structopt::StructOpt;
 
-use midas_volume::{Opt, run};
+use frob_brightness::{Opt, run};
 
 fn main() -> Result<()> {
     let opt = Opt::from_args();

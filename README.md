@@ -1,18 +1,18 @@
 # Introduction
 
-Midas is a collection of useful tools for providing a good experience on minimal desktop environments (e.g. i3).
+Frob is a collection of useful tools for providing a good experience on minimal desktop environments (e.g. i3).
 
 # Installation
 
 ```
-cargo install midas --git https://github.com/panicbit/midas
+cargo install frob --git https://github.com/panicbit/frob
 ```
 
-You can also install any direct subcommand of `midas` as standalone tool by substituting `midas` in the above command with `midas-<subcommand>`.
-E.g. to install `midas volume` as standalone tool use:
+You can also install any direct subcommand of `frob` as standalone tool by substituting `frob` in the above command with `frob-<subcommand>`.
+E.g. to install `frob volume` as standalone tool use:
 
 ```
-cargo install midas-volume --git https://github.com/panicbit/midas
+cargo install frob-volume --git https://github.com/panicbit/frob
 ```
 
 See below for an overview of possible subcommands.
@@ -20,7 +20,7 @@ See below for an overview of possible subcommands.
 # Subcommand Overview
 
 ```
-midas
+frob
     brightness
         up
         down
@@ -37,4 +37,4 @@ midas
         toggle-mute
 ```
 
-The first level of `midas` subcommands can also be installed as individual tools e.g. `midas-volume`.
+The first level of `frob` subcommands can also be installed as individual tools e.g. `frob-volume`.
