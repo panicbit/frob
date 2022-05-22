@@ -4,7 +4,7 @@ version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Tool to control system volume"
-repository = "https://github.com/panicbit/frob"
+repository = "https://github.com/panicbit/frob-volume"
 readme = "../README.md"
 
 [dependencies]
