@@ -2,6 +2,9 @@
 name = "frob-monitor"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Tool to control monitor related aspects"
+repository = "https://github.com/panicbit/frob"
 
 [dependencies]
 anyhow = "1.0.51"
