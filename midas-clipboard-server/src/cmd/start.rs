@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use fauxpas::*;
-use x11rb::NONE;
 use x11rb::connection::Connection;
 use x11rb::protocol::xproto::{
     ConnectionExt as _, EventMask, SelectionNotifyEvent, SelectionRequestEvent,
@@ -9,6 +8,7 @@ use x11rb::protocol::xproto::{
 };
 use x11rb::protocol::Event;
 use x11rb::rust_connection::RustConnection;
+use x11rb::NONE;
 
 use crate::wrapper::{Atoms, Window};
 
@@ -83,11 +83,7 @@ fn handle_selection_request(
 
     match &*target_name {
         "TARGETS" => {
-            let targets = &[
-                atoms.UTF8_STRING,
-                atoms.text_plain_utf8,
-                atoms.text_plain,
-            ];
+            let targets = &[atoms.UTF8_STRING, atoms.text_plain_utf8, atoms.text_plain];
 
             requestor.set_property_atoms(event.property, targets)?;
         }
@@ -99,7 +95,7 @@ fn handle_selection_request(
         _ => {
             response.property = NONE;
             println!("unsupported target: {}", target_name)
-        },
+        }
     };
 
     conn.send_event(true, event.requestor, EventMask::NO_EVENT, response)?

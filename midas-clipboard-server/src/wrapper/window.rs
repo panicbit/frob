@@ -9,7 +9,7 @@ use x11rb::rust_connection::RustConnection;
 use x11rb::wrapper::ConnectionExt as _;
 use x11rb::{COPY_DEPTH_FROM_PARENT, CURRENT_TIME};
 
-use crate::wrapper::{PropertyValueRef, WindowId, Atoms};
+use crate::wrapper::{Atoms, PropertyValueRef, WindowId};
 
 pub struct Window {
     id: WindowId,
@@ -63,49 +63,39 @@ impl Window {
     }
 
     pub fn set_property_str(&self, property: Atom, data: &str) -> Result<()> {
-        self.set_property(property, self.atoms.UTF8_STRING, PropertyValueRef::U8(data.as_ref()))
+        self.set_property(
+            property,
+            self.atoms.UTF8_STRING,
+            PropertyValueRef::U8(data.as_ref()),
+        )
     }
 
-    pub fn set_property_bytes(
-        &self,
-        property: Atom,
-        bytes: impl AsRef<[u8]>,
-    ) -> Result<()> {
-        self.set_property(property, self.atoms.STRING, PropertyValueRef::U8(bytes.as_ref()))
+    pub fn set_property_bytes(&self, property: Atom, bytes: impl AsRef<[u8]>) -> Result<()> {
+        self.set_property(
+            property,
+            self.atoms.STRING,
+            PropertyValueRef::U8(bytes.as_ref()),
+        )
     }
 
     pub fn set_property_atoms(&self, property: Atom, atoms: &[Atom]) -> Result<()> {
         self.set_property(property, self.atoms.ATOM, PropertyValueRef::U32(atoms))
     }
 
-    fn set_property(
-        &self,
-        property: Atom,
-        type_: Atom,
-        value: PropertyValueRef,
-    ) -> Result<()> {
+    fn set_property(&self, property: Atom, type_: Atom, value: PropertyValueRef) -> Result<()> {
         let result = match value {
-            PropertyValueRef::U8(value) => self.conn.change_property8(
-                PropMode::REPLACE,
-                *self.id(),
-                property,
-                type_,
-                value,
-            ),
-            PropertyValueRef::U16(value) => self.conn.change_property16(
-                PropMode::REPLACE,
-                *self.id(),
-                property,
-                type_,
-                value,
-            ),
-            PropertyValueRef::U32(value) => self.conn.change_property32(
-                PropMode::REPLACE,
-                *self.id(),
-                property,
-                type_,
-                value,
-            ),
+            PropertyValueRef::U8(value) => {
+                self.conn
+                    .change_property8(PropMode::REPLACE, *self.id(), property, type_, value)
+            }
+            PropertyValueRef::U16(value) => {
+                self.conn
+                    .change_property16(PropMode::REPLACE, *self.id(), property, type_, value)
+            }
+            PropertyValueRef::U32(value) => {
+                self.conn
+                    .change_property32(PropMode::REPLACE, *self.id(), property, type_, value)
+            }
         };
 
         result?.check().context("Failed to set property")?;

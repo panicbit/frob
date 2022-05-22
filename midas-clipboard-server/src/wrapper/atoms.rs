@@ -1,4 +1,3 @@
-
 x11rb::atom_manager! {
     pub Atoms: AtomsCookie {
         UTF8_STRING,
