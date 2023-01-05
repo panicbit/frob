@@ -8,6 +8,6 @@ repository = "https://github.com/panicbit/frob-volume"
 readme = "../README.md"
 
 [dependencies]
+clap = { workspace = true }
 fauxpas = "1.0.51"
 libpulse-binding = "2.25.0"
-structopt = "0.3.25"

@@ -10,33 +10,32 @@ use libpulse_binding::operation;
 use libpulse_binding::proplist::Proplist;
 use libpulse_binding::proplist::properties::APPLICATION_NAME;
 use libpulse_binding::volume::{ChannelVolumes, Volume};
-use structopt::StructOpt;
 
-#[derive(StructOpt)]
-pub enum Opt {
+#[derive(clap::Parser)]
+pub enum Cli {
     Get,
     Set { percent: u8 },
-    #[structopt(visible_alias = "up")]
+    #[clap(visible_alias = "up")]
     Increase(VolumeChange),
-    #[structopt(visible_alias = "down")]
+    #[clap(visible_alias = "down")]
     Decrease(VolumeChange),
     ToggleMute,
 }
 
-#[derive(StructOpt)]
+#[derive(clap::Args)]
 pub struct VolumeChange {
-    #[structopt(default_value = "1")]
+    #[clap(default_value = "1")]
     /// the amount to change the volume by
     amount: u8,
 }
 
-pub fn run(opt: &Opt) -> Result<()> {
-    match opt {
-        Opt::Get => cmd_get(),
-        Opt::Set { percent } => cmd_set(*percent),
-        Opt::Increase(opt) => cmd_increase(opt),
-        Opt::Decrease(opt) => cmd_decrease(opt),
-        Opt::ToggleMute => cmd_toggle_mute(),
+pub fn run(cli: &Cli) -> Result<()> {
+    match cli {
+        Cli::Get => cmd_get(),
+        Cli::Set { percent } => cmd_set(*percent),
+        Cli::Increase(args) => cmd_increase(args),
+        Cli::Decrease(args) => cmd_decrease(args),
+        Cli::ToggleMute => cmd_toggle_mute(),
     }
 }
 
@@ -72,9 +71,9 @@ fn cmd_set(percent: u8) -> Result<()> {
     Ok(())
 }
 
-fn cmd_increase(opt: &VolumeChange) -> Result<()> {
+fn cmd_increase(args: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    let amount = (opt.amount as f32).clamp(0., 100.);
+    let amount = (args.amount as f32).clamp(0., 100.);
 
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;
@@ -95,9 +94,9 @@ fn cmd_increase(opt: &VolumeChange) -> Result<()> {
     Ok(())
 }
 
-fn cmd_decrease(opt: &VolumeChange) -> Result<()> {
+fn cmd_decrease(args: &VolumeChange) -> Result<()> {
     let (mut mainloop, context) = connect_to_pulseaudio()?;
-    let amount = (opt.amount as f32).clamp(0., 100.);
+    let amount = (args.amount as f32).clamp(0., 100.);
 
     let sink_info = get_sink_info_by_name(&mut mainloop, &context, "@DEFAULT_SINK@")
         .context("Failed to get sink info")?;

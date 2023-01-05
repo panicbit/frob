@@ -2,35 +2,34 @@ use std::{fs, path::{PathBuf, Path}, ffi::OsString, time::Duration};
 
 use dbus::blocking::Connection;
 use fauxpas::*;
-use structopt::StructOpt;
 
-#[derive(StructOpt)]
-pub enum Opt {
+#[derive(clap::Parser)]
+pub enum Cli {
     Get,
     Set {
-        #[structopt(default_value = "1")]
+        #[clap(default_value = "1")]
         percent: u8,
     },
-    #[structopt(visible_alias = "up")]
+    #[clap(visible_alias = "up")]
     Increase {
-        #[structopt(default_value = "1")]
+        #[clap(default_value = "1")]
         amount: u8,
     },
-    #[structopt(visible_alias = "down")]
+    #[clap(visible_alias = "down")]
     Decrease {
-        #[structopt(default_value = "1")]
+        #[clap(default_value = "1")]
         amount: u8,
     },
     List,
 }
 
-pub fn run(opt: &Opt) -> Result<()> {
-    match opt {
-        Opt::Get => cmd_get(),
-        Opt::Set { percent } => cmd_set(*percent),
-        Opt::Increase { amount } => cmd_increase(*amount),
-        Opt::Decrease { amount } => cmd_decrease(*amount),
-        Opt::List => cmd_list(),
+pub fn run(cli: &Cli) -> Result<()> {
+    match cli {
+        Cli::Get => cmd_get(),
+        Cli::Set { percent } => cmd_set(*percent),
+        Cli::Increase { amount } => cmd_increase(*amount),
+        Cli::Decrease { amount } => cmd_decrease(*amount),
+        Cli::List => cmd_list(),
     }
 }
 
@@ -99,9 +98,9 @@ fn cmd_list() -> Result<()> {
 fn get_all_backlight_infos() -> Result<Vec<BacklightInfo>> {
     let paths = backlight_device_paths()
         .context("failed to get backlight device paths")?;
-    
+
     let mut infos = Vec::new();
-    
+
     for path in paths {
         let info = get_backlight_info(&path)
             .with_context(|| anyhow!("failed to get backlight info from {:?}", path))?;
@@ -128,7 +127,7 @@ fn backlight_device_paths() -> Result<Vec<PathBuf>> {
 
 fn get_backlight_info(path: impl AsRef<Path>) -> Result<BacklightInfo> {
     let path = path.as_ref();
-    
+
     Ok(BacklightInfo {
         path: path.to_owned(),
         name: path.file_name()
@@ -150,7 +149,7 @@ fn read_u32_from_file(path: impl AsRef<Path>) -> Result<u32> {
         .trim()
         .parse::<u32>()
         .with_context(|| fauxpas!("failed to parse content of {:?} as u32", path))?;
-    
+
     Ok(value)
 }
 

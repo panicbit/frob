@@ -1,15 +1,14 @@
 use anyhow::*;
-use structopt::StructOpt;
 
 mod cycle;
 
-#[derive(StructOpt)]
-pub enum Opt {
-    Cycle(cycle::Opt),
+#[derive(clap::Parser)]
+pub enum Cli {
+    Cycle(cycle::Args),
 }
 
-pub fn run(opt: &Opt) -> Result<()> {
-    match opt {
-        Opt::Cycle(opt) => cycle::run(opt),
+pub fn run(cli: &Cli) -> Result<()> {
+    match cli {
+        Cli::Cycle(args) => cycle::run(args),
     }
 }

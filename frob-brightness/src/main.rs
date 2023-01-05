@@ -1,12 +1,12 @@
+use clap::Parser;
 use fauxpas::*;
-use structopt::StructOpt;
 
-use frob_brightness::{Opt, run};
+use frob_brightness::{Cli, run};
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let cli = Cli::parse();
 
-    run(&opt)?;
+    run(&cli)?;
 
     Ok(())
 }

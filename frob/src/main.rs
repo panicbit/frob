@@ -1,19 +1,22 @@
 use anyhow::*;
-use structopt::StructOpt;
+use clap::Parser;
 
-#[derive(StructOpt)]
-pub enum Opt {
-    Brightness(frob_brightness::Opt),
-    Monitor(frob_monitor::Opt),
-    Volume(frob_volume::Opt),
+#[derive(Parser)]
+pub enum Cli {
+    #[clap(subcommand)]
+    Brightness(frob_brightness::Cli),
+    #[clap(subcommand)]
+    Monitor(frob_monitor::Cli),
+    #[clap(subcommand)]
+    Volume(frob_volume::Cli),
 }
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let cli = Cli::parse();
 
-    match opt {
-        Opt::Brightness(opt) => frob_brightness::run(&opt),
-        Opt::Monitor(opt) => frob_monitor::run(&opt),
-        Opt::Volume(opt) => frob_volume::run(&opt),
+    match cli {
+        Cli::Brightness(cli) => frob_brightness::run(&cli),
+        Cli::Monitor(cli) => frob_monitor::run(&cli),
+        Cli::Volume(cli) => frob_volume::run(&cli),
     }
 }

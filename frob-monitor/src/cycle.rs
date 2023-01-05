@@ -2,18 +2,17 @@ use std::process::{Command, Stdio};
 
 use anyhow::*;
 use serde::Deserialize;
-use structopt::StructOpt;
 
-#[derive(StructOpt)]
-pub struct Opt {
-    #[structopt(
+#[derive(clap::Args)]
+pub struct Args {
+    #[clap(
         long = "reverse",
-        short = "r",
+        short = 'r',
         visible_alias = "rev",
     )]
     /// reverse cycle direction
     reverse: bool,
-    #[structopt(
+    #[clap(
         long = "attempts",
         default_value = "1",
     )]
@@ -21,13 +20,13 @@ pub struct Opt {
     attempts: usize,
 }
 
-pub fn run(opt: &Opt) -> Result<()> {
+pub fn run(args: &Args) -> Result<()> {
     let mut workspaces = get_workspaces()
         .context("Failed to get workspaces")?;
 
     workspaces.sort_by_key(|workspace| (workspace.rect.y, workspace.rect.x));
 
-    if opt.reverse {
+    if args.reverse {
         workspaces.reverse();
     }
 
@@ -36,7 +35,7 @@ pub fn run(opt: &Opt) -> Result<()> {
         None => return Ok(()),
     };
 
-    for _ in 0..opt.attempts {
+    for _ in 0..args.attempts {
         switch_to_workspace(next_workspace)
             .context("Failed to switch workspace")?;
     }

@@ -9,6 +9,6 @@ documentation = "https://docs.rs/frob-brightness"
 readme = "../README.md"
 
 [dependencies]
+clap = { workspace = true }
 dbus = "0.9.5"
 fauxpas = "1.0.51"
-structopt = "0.3.25"

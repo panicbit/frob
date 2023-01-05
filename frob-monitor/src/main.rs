@@ -1,12 +1,11 @@
 use anyhow::*;
-use structopt::StructOpt;
-
-use frob_monitor::{Opt, run};
+use clap::Parser;
+use frob_monitor::{Cli, run};
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let cli = Cli::parse();
 
-    run(&opt)?;
+    run(&cli)?;
 
     Ok(())
 }

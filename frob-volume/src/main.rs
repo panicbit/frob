@@ -1,12 +1,12 @@
+use clap::Parser;
 use fauxpas::*;
-use structopt::StructOpt;
 
-use frob_volume::{Opt, run};
+use frob_volume::{Cli, run};
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let args = Cli::parse();
 
-    run(&opt)?;
+    run(&args)?;
 
     Ok(())
 }
