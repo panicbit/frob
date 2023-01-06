@@ -4,3 +4,4 @@ default-members = ["frob"]
 
 [workspace.dependencies]
 clap = { version = "4.0.32", features = ["derive"] }
+clap_complete = "4.0.7"

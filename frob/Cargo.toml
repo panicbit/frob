@@ -15,3 +15,4 @@ frob-volume = { version = "0.1.0", path = "../frob-volume" }
 
 anyhow = "1.0.51"
 clap = { workspace = true }
+clap_complete = { workspace = true }
